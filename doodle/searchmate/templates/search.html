@@ -1,0 +1,55 @@
+<html>
+    <head>
+        <title>Doodle</title>
+        <!--
+    </head>
+       <h1 class="main-header" style="margin-top:50px;color:rgb(37, 21, 182); text-align: center;background-color: #e7e5e5; font-size: 50px;" >
+       Doodle
+      </h1>
+      --->
+      {% load static %}
+
+
+      <img src="{% static 'DooDle.png' %}" style="  left:50%; margin:5 auto; display:block;" alt="icon">
+
+<body>
+
+
+
+
+
+<form method="GET">
+    <input id="q" name="q" type="text" dir="rtl" height="10px" width="30px" size="50" style="  left:50%; margin:5 auto; display:block;" placeholder="What to doodle...">
+
+</form>
+
+<input type="submit"  value="Search"/>
+</form>
+    <style>
+        input[type=button], input[type=submit], input[type=reset] {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 16px 32px;
+            text-decoration: none;
+            margin: 4px 2px;
+            cursor: pointer;
+            text-align: center;
+            left:50%;
+            margin:5 auto;
+            display:block;
+          }
+          </style>
+
+
+{% for item in docs %}
+<h1 dir="rtl" style="margin-top:50px; color:rgb(18, 15, 204); background-color: #5feee7; text-align: center"> <a href= {{ item.url }}> {{ item.title }}</a>  </h1>
+
+<h3 dir="rtl" style="margin-top:50px; color:rgb(18, 15, 204); background-color: #5feee7;"> {{ item.content }} </h3>
+
+
+    
+    
+    
+    <br>
+    {% endfor %}

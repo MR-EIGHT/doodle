@@ -7,17 +7,22 @@ from django.http.response import HttpResponse
 from django.shortcuts import render
 from django.http import HttpRequest
 from searchmate.models import webDoc
+from elasticsearch_dsl import Q
 # Create your views here.
 
 
 def search(request):
-    s = WebDocument.search().filter("term",title = 'urmia')
-    
-    for hit in s:
-        print(hit.title)
-        print(hit.content)
-        print(hit.url)
-    return render(request,"")
+    q=request.GET.get('q')
+    if q:
+        search = WebDocument.search()
+        #search = search.sort('title','content')
+        
+        query = Q("multi_match", query=q, fields=['title', 'content'])
+        docs = search.query(query)
+    else:
+        docs = ''
+
+    return render(request,"search.html",{'docs': docs})
 
 
 
