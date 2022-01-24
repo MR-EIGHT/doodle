@@ -43,13 +43,13 @@
 
 
 {% for item in docs %}
-<h1 dir="rtl" style="margin-top:50px; color:rgb(18, 15, 204); background-color: #5feee7; text-align: center"> <a href= {{ item.url }}> {{ item.title }}</a>  </h1>
+<h1 dir="rtl" style="margin-top:5px; color:rgb(204, 15, 15); text-align: center"> ******************************************************************************************************************</h1>
 
-<h3 dir="rtl" style="margin-top:50px; color:rgb(18, 15, 204); background-color: #5feee7;"> {{ item.content }} </h3>
+<h1 dir="rtl" style="margin-top:5px; color:rgb(18, 15, 204); background-color: #5feee7; text-align: center"> <a href= {{ item.url }}> {{ item.title }}</a>  </h1>
+
+<h3 dir="rtl" style="margin-top:5px; color:rgb(0, 0, 0); background-color: rgb(33, 243, 198);"> {{ item.content }} </h3>
+
+<h1 dir="rtl" style="margin-top:0px; color:rgb(204, 15, 15); text-align: center"> ******************************************************************************************************************</h1>
 
 
-    
-    
-    
-    <br>
     {% endfor %}
