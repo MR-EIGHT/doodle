@@ -16,9 +16,9 @@ def search(request):
     if q:
         search = WebDocument.search()
         #search = search.sort('title','content')
-        
         query = Q("multi_match", query=q, fields=['title', 'content'])
         docs = search.query(query)
+        docs=docs[:10]
     else:
         docs = ''
 
@@ -37,6 +37,6 @@ def add_document(request):
 
 
 def delete_document(request):
-    instance = webDoc.objects.get(title=request.GET['title'],content=request.GET['content'],url=request.GET['url'])
+    instance = webDoc.objects.get(id=request['id'])
     instance.delete()
-    return HttpResponse(f"This Doc is saved successfully: {request.GET['title']} {request.GET['content']} {request.GET['url']}")
+    return HttpResponse(f"This Doc is deleted successfully: {id}")
