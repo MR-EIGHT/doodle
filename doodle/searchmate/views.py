@@ -8,11 +8,24 @@ from django.shortcuts import render
 from django.http import HttpRequest
 from searchmate.models import webDoc
 from elasticsearch_dsl import Q
+from .SpellingCorrector import Corrector
+
 # Create your views here.
+
+def correct(text):
+    spell_corrector = Corrector()
+    spell_corrector.wspace_correction()
+    spell_corrector.sensitive_corrector()
+    spell_corrector.corrector()
+
+
 
 
 def search(request):
+
+    
     q=request.GET.get('q')
+
     if q:
         search = WebDocument.search()
         #search = search.sort('title','content')
