@@ -9,7 +9,7 @@ from django.http import HttpRequest
 from searchmate.models import webDoc
 from elasticsearch_dsl import Q
 from .SpellingCorrector import Corrector
-import preper
+from searchmate import preper
 
 # Create your views here.
 
