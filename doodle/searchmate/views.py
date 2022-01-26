@@ -70,30 +70,112 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from searchmate import serializers
+import json
 
 class myApiView(APIView):
-    serializers_class = serializers.mySerializer
+    serializers_class = serializers.DocsSerializer
 
-    def get(self, request, format=None):
+    def get(self, request,pk=None, format=None):
+    
+        q=pk
 
-        return Response({'message':'Hello!'})
+        if q:
+            search = WebDocument.search()
+            #search = search.sort('title','content')
+            query = Q("multi_match", query=q, fields=['title', 'content'])
+            docs = search.query(query)
+            print(docs)
+            docs=docs[:10]
+
+            """
+            jsonify
+            """
+            result= dict()
+            i=0
+            for item in docs:
+                i+=1
+                result[f'document {i}']={'title':item.title,'content':item.content,'url':item.url}
+            docs = result
+        else:
+            docs = ''
+
+        return Response(result)
+
+
 
     def post(self, request):
-        print(request.data)
         serializer = self.serializers_class(data=request.data)
-        
+
         if serializer.is_valid():
             title = serializer.validated_data.get('title')
-            message = f'Hello {title}'
-            return Response({'message': message})
+            content = serializer.validated_data.get('content')
+            url = serializer.validated_data.get('url')
+
+            new_doc = webDoc(
+            title=title,
+            content=content,
+            url=url)
+            new_doc.save()
+            return Response({'message': f'New Doc is Saved!'})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self,request,pk=None):
-        return Response({'message': 'put'})
 
-    def patch(self,request,pk=None):
-        return Response({'message': 'patch'})
 
-    def delete(self,request,pk=None):
-        return Response({'message': 'delete'})
+
+
+    def put(self,request,pk):
+        serializer = self.serializers_class(data=request.data)
+
+        if serializer.is_valid():
+            title = serializer.validated_data.get('title')
+            content = serializer.validated_data.get('content')
+            url = serializer.validated_data.get('url')
+            webDoc.objects.filter(id=pk).update(title=title,content=content,url=url)
+            return Response({'message': f'Doc ID: {pk} Updated!'})
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+ 
+    def patch(self,request,pk):
+        serializer = self.serializers_class(data=request.data)
+
+        if serializer.is_valid():
+            title = serializer.validated_data.get('title',None)
+            content = serializer.validated_data.get('content',None)
+            url = serializer.validated_data.get('url',None)
+
+            if title != None:
+                webDoc.objects.filter(id=pk).update(title=title)
+
+            if content != None:
+                webDoc.objects.filter(id=pk).update(content=content)
+
+            if url != None:
+                webDoc.objects.filter(id=pk).update(url=url)
+
+
+
+            return Response({'message': f'Doc ID: {pk} Patched!'})
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+    def delete(self,request,pk):
+        instance = webDoc.objects.get(id=pk)
+        instance.delete()
+        return Response({'message': f'Doc ID: {id} Deleted!'})
+
+
+
+        
+"""
+{
+"title": "u",
+"content":"test",
+"url":"https://google.com"
+
+}
+"""
