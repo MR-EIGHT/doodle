@@ -9,15 +9,24 @@ from django.http import HttpRequest
 from searchmate.models import webDoc
 from elasticsearch_dsl import Q
 from .SpellingCorrector import Corrector
+import preper
 
 # Create your views here.
 
 def correct(text):
+    query = []
+
     spell_corrector = Corrector()
     spell_corrector.wspace_correction()
     spell_corrector.sensitive_corrector()
     spell_corrector.corrector()
 
+    text=spell_corrector.wspace_correction(text)
+    
+    for word in preper.Tokenizer.tokenize(text):
+        query.append(spell_corrector(word))
+
+    return ' '.join(query)
 
 
 
