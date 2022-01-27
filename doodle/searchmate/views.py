@@ -75,7 +75,7 @@ import json
 class myApiView(APIView):
     serializers_class = serializers.DocsSerializer
 
-    def get(self, request,pk=None, format=None):
+    def get(self, request, pk=None, format=None):
     
         q=pk
 
@@ -99,7 +99,7 @@ class myApiView(APIView):
         else:
             docs = ''
 
-        return Response(result)
+        return Response(docs)
 
 
 
