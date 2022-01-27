@@ -1,4 +1,6 @@
+import concurrent.futures
 import json
+import threading
 from queue import Queue
 from urllib.parse import urlparse, urljoin
 import requests
@@ -13,10 +15,22 @@ class Scrapper:
         self.limit = limit
         self.url_set = set([])
         self.scrape_queue = Queue()
+        self.lock = threading.Lock()
+
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
 
     def start(self):
         self.scrape_queue.put(self.start_url)
-        self.scrape()
+        while len(self.url_set) != self.limit:
+            current_url = self.scrape_queue.get(timeout=20)
+            print(f'url: {current_url} in: {current_url not in self.url_set}')
+
+            with self.lock:
+                if current_url not in self.url_set:
+                    self.url_set.add(current_url)
+                    self.executor.submit(self.scrape, current_url)
+                else:
+                    continue
 
     def tag_visible(self, element):
         if element.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
@@ -25,46 +39,37 @@ class Scrapper:
             return False
         return True
 
-    def scrape(self):
-        with open("output.json", "a", encoding='utf-8') as outfile:
-            outfile.write('{ \n "Documents": [' + '\n')
+    def scrape(self, current_url):
+        result = dict()
 
-        while len(self.url_set) != self.limit:
-            result = dict()
-            current_url = self.scrape_queue.get(timeout=10)
-            self.url_set.add(current_url)
-            root_url = '{}://{}'.format(urlparse(current_url).scheme,
-                                        urlparse(current_url).netloc)
-            page = requests.get(current_url)
-            soup = BeautifulSoup(page.content, "html.parser")
-            result['url'] = current_url
-            result['title'] = soup.title.string
+        root_url = '{}://{}'.format(urlparse(current_url).scheme,
+                                    urlparse(current_url).netloc)
 
-            texts = soup.findAll(text=True)
-            visible_texts = filter(self.tag_visible, texts)
-            texts = u" ".join(t.strip() for t in visible_texts)
-            result['body'] = texts
+        page = requests.get(current_url)
+        soup = BeautifulSoup(page.content, "html.parser")
+        result['url'] = current_url
+        result['title'] = soup.title.string
+        result['title'] = result.get('title').strip()
 
-            json_object = json.dumps(result, indent=4, ensure_ascii=False)
-            with open("output.json", "a", encoding='utf-8') as outfile:
-                outfile.write(json_object + ',')
+        texts = soup.findAll(text=True)
+        visible_texts = filter(self.tag_visible, texts)
+        texts = u" ".join(t.strip() for t in visible_texts)
+        result['content'] = texts.strip()
 
-            anchor_tags = soup.find_all('a', href=True)
+        a = requests.post(url='http://127.0.0.1:8000/searchmate/api/', data=result)
+        print(f"{result}\n{a.text}\n\n")
 
-            for link in anchor_tags:
-                url = link['href']
-                if url.startswith('/'):
-                    url = urljoin(root_url, url)
+        anchor_tags = soup.find_all('a', href=True)
+
+        for link in anchor_tags:
+            url = link['href']
+            if url.startswith('/'):
+                url = urljoin(root_url, url)
+            with self.lock:
                 if url not in self.url_set:
                     self.scrape_queue.put(url)
 
-        with open("output.json", "r", encoding='utf-8') as outfile:
-            st = outfile.read()
-            st = st.rstrip(',')
-        with open("output.json", "w", encoding='utf-8') as outfile:
-            outfile.write(st + '\n ] \n }')
-
 
 if __name__ == '__main__':
-    s = Scrapper('http://urmia.ac.ir', 5)
+    s = Scrapper('http://urmia.ac.ir', 300)
     s.start()
