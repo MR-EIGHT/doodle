@@ -15,7 +15,7 @@ class Corrector:
               loads the data.
               counts the frequencies of the words.
         """
-        f = open("data+.pkl", 'rb')
+        f = open("searchmate/SpellingCorrector/data+.pkl", 'rb')
         self.dicti = pickle.load(f)
         f.close()
         self.WORDS = Counter(self.dicti)

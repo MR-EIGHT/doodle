@@ -16,15 +16,16 @@ from searchmate import preper
 def correct(text):
     query = []
 
-    spell_corrector = Corrector()
-    spell_corrector.wspace_correction()
-    spell_corrector.sensitive_corrector()
-    spell_corrector.corrector()
+    spell_corrector = Corrector.Corrector()
+    tokenizer = preper.Tokenizer()
+    #spell_corrector.wspace_correction()
+    #spell_corrector.sensitive_corrector()
+    #spell_corrector.corrector()
 
     text=spell_corrector.wspace_correction(text)
     
-    for word in preper.Tokenizer.tokenize(text):
-        query.append(spell_corrector(word))
+    for word in tokenizer.tokenize(text):
+        query.append(spell_corrector.corrector(word))
 
     return ' '.join(query)
 
@@ -36,8 +37,9 @@ def search(request):
     q=request.GET.get('q')
 
     if q:
+        q = correct(q)
+
         search = WebDocument.search()
-        #search = search.sort('title','content')
         query = Q("multi_match", query=q, fields=['title', 'content'])
         docs = search.query(query)
         docs=docs[:10]
@@ -80,8 +82,10 @@ class myApiView(APIView):
         q=pk
 
         if q:
+
+            q = correct(q)
+
             search = WebDocument.search()
-            #search = search.sort('title','content')
             query = Q("multi_match", query=q, fields=['title', 'content'])
             docs = search.query(query)
             print(docs)
@@ -111,10 +115,23 @@ class myApiView(APIView):
             content = serializer.validated_data.get('content')
             url = serializer.validated_data.get('url')
 
+
+            normalizer = preper.Normalizer()
+            tokenizer = preper.Tokenizer()
+
+
             new_doc = webDoc(
-            title=title,
-            content=content,
-            url=url)
+
+            title = normalizer.normalize(title),
+
+
+            content = ' '.join(tokenizer.tokenize(normalizer.normalize(content))),
+
+
+            url=url
+            
+            )
+
             new_doc.save()
             return Response({'message': f'New Doc is Saved!'})
         else:
