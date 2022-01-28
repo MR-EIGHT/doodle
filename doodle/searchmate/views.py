@@ -12,11 +12,11 @@ from .SpellingCorrector import Corrector
 from searchmate import preper
 
 # Create your views here.
+spell_corrector = Corrector.Corrector()
 
 def correct(text):
     query = []
 
-    spell_corrector = Corrector.Corrector()
     tokenizer = preper.Tokenizer()
     #spell_corrector.wspace_correction()
     #spell_corrector.sensitive_corrector()
